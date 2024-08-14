@@ -1,19 +1,46 @@
+import atu.testrecorder.ATUTestRecorder;
+import atu.testrecorder.exceptions.ATUTestRecorderException;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class SecondTest {
 
     WebDriver driver;
+    private ATUTestRecorder recorder;
+
+    @BeforeMethod
+    public synchronized void beforeMethod(Method method) throws MalformedURLException {
+        Date date = new Date();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("ddMMyyHHmmss");
+        try {
+            recorder = new ATUTestRecorder(System.getProperty("user.dir")+"\\Videos\\",method.getName()+"_"+simpleDateFormat.format(date),false);
+        } catch (ATUTestRecorderException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            recorder.start();
+        } catch (ATUTestRecorderException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     @Test
     public void secondTest() throws InterruptedException {
+
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
         driver.get("https://demo.dealsdray.com/");
@@ -58,4 +85,14 @@ public class SecondTest {
             throw new RuntimeException(e);
         }
     }
+
+    @AfterMethod
+    public void afterMethod(ITestResult result){
+        try {
+            recorder.stop();
+        } catch (ATUTestRecorderException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
